@@ -24,4 +24,4 @@ log.txt
 !.gitignore
 !.Rprofile
 !.gitattributes
-!df_ship_clean.csv
+!df_ship_clean.RDS

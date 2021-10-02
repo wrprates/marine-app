@@ -38,8 +38,8 @@ dfs$clean <-
 # end-st
   
 # Write clean CSV
-readr::write_csv(dfs$clean, file = base::paste0(project_root_path,"/data/clean/df_ship_clean.csv") )
-
+# readr::write_csv(dfs$clean, file = base::paste0(project_root_path,"/data/clean/df_ship_clean.csv") )
+readr::write_rds(dfs$clean, file = base::paste0(project_root_path,"/data/clean/df_ship_clean.RDS"))
 
   
   
