@@ -174,7 +174,9 @@ server <- function(input, output, session) {
     div(class = "ui card", style = "border-radius: 0; width: 100%; background: #efefef",
       div(class = "content", 
         div(class = "right floated meta", "Added: 2020-12-24"), paste0("Chimney #", id)), 
+      
       div(class = "image", img(src = paste0("images/", id %% mock_photos_n + 1, ".jpg"), style = "height: 250px")), 
+      
       div(class = "content", 
         span(class = "right floated", icon("warning"), paste(mock_alerts_n, "alerts")), 
         icon("comment"), paste(mock_comments_n, "comments")), 
