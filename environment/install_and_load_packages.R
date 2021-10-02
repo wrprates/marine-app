@@ -41,7 +41,10 @@ message("Verificando disponibilidade dos pacotes default para o projeto...")
     # For ShinyApps publishing
     "rstudioapi",
     "packrat", 
-    "rsconnect"
+    "rsconnect",
+    
+    # Geo
+    "geosphere"
   )
 
 #.devpackages <- NULL

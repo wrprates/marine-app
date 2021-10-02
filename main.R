@@ -7,12 +7,14 @@ project_root_path <- getwd()
 # General encoding
 encoding <- "UTF-8"
 
-# Inicializar biblioteca privada do projeto
+# Initialize Project Private Library
 initialize_project <- FALSE
 
-# Verificar se o projeto já tem uma biblioteca privada ou criá-la
-source(paste0(getwd(), "/environment/initialize_project.R"))
+# Check if the project already has a private library or create one
+source(paste0(project_root_path, "/environment/initialize_project.R"))
 
-# Adicioanar ou atualizar a biblioteca privada do projeto além de carregar pacotes necessários
-source(paste0(getwd(), "/environment/renv_init.R"))
+# Add or update the project's private library in addition to uploading required packages
+source(paste0(project_root_path, "/environment/renv_init.R"))
 
+# Loading local functions
+source(paste0(project_root_path, "/sources/functions.R"))
