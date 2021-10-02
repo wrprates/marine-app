@@ -1,5 +1,10 @@
 server <- function(input, output, session) {
   
+  dfs <- list()
+  
+  dfs$clean <- readr::read_rds("https://gitlab.com/wrprates/marine-app/-/raw/main/data/clean/df_ship_clean.RDS") 
+   
+  
   warsaw <- list(lon = 21.0122, lat = 52.2297)
   
   airly_api_url <- glue("https://airapi.airly.eu/v2/measurements/point?lat={warsaw$lat}&lng={warsaw$lon}")
