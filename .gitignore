@@ -19,8 +19,9 @@
 *.xlt
 ._*
 .*
+log.txt
+/library
 !.gitignore
 !.Rprofile
 !.gitattributes
-log.txt
-/library
+!df_ship_clean.csv
