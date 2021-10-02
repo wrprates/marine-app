@@ -1,0 +1,13 @@
+name: marine-app
+title: marine-app
+username:
+account: wrprates
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4781174
+bundleId: 5096154
+url: https://wrprates.shinyapps.io/marine-app/
+when: 1633151408.81104
+lastSyncTime: 1633151408.81106
+asMultiple: FALSE
+asStatic: FALSE
