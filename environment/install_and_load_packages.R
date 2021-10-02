@@ -32,6 +32,7 @@ message("Verificando disponibilidade dos pacotes default para o projeto...")
     "highcharter",
     "anytime",
     "dplyr",
+    "readr",
     "shinyjs",
     "httr",
     "glue",
