@@ -10,3 +10,7 @@ Folders:
 - `data`: contains data raw (included in gitignore) and clean (exception in gitignore). The clean data is saved in .RDS and loaded from a link in the App.
 - `renv`: manage package versions.
 - `sources`: some specific files, like customized functions that were not found in packages.
+
+The deployed version of the ShinyApp can be found in:
+
+https://wrprates.shinyapps.io/marine-app
