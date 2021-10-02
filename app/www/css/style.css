@@ -1,0 +1,10 @@
+body {
+  margin: 0 !important;
+  background: #eeeeee !important;
+}
+
+@media screen and (min-width: 845px) {
+  #polluters_map {
+    height: 100vh !important;
+  }
+}
