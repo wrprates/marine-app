@@ -4,12 +4,7 @@ server <- function(input, output, session) {
   
   dfs$clean <- readr::read_rds("https://gitlab.com/wrprates/marine-app/-/raw/main/data/clean/df_ship_clean.RDS") 
    
-  df_filtered <- dfs$clean %>% head(10)
-    
-  warsaw <- list(lon = 21.0122, lat = 52.2297)
-  
-  
-  selected_point <- reactiveValues(id = NULL)
+  # selected_point <- reactiveValues(id = NULL)
 
   # output$gaugePM25 <- renderHighchart({ gauge(pm25_perc) })
   # 
@@ -52,20 +47,30 @@ server <- function(input, output, session) {
   #   paste("Measurements time:", anytime(airly_data$current$fromDateTime))
   #   #paste("Measurements time:", anytime("2020-09-12T09:56:50.962Z"))
   # })
+ 
+  
+  df_filtered <- reactive({
+    dfs$clean %>% dplyr::filter(SHIPNAME == req(input$vessel))
+  })
   
   output$polluters_map <- renderLeaflet({
-    points_n <- 100
+    # input$vessel <- 
+    df <- df_filtered() 
     
-    smokeIcon <- makeIcon(
-      iconUrl = "images/smoke.gif",
-      iconWidth = 60, iconHeight = 60,
-      iconAnchorX = 22, iconAnchorY = 94
-    )
+    # smokeIcon <- makeIcon(
+    #   iconUrl = "images/smoke.gif",
+    #   iconWidth = 60, iconHeight = 60,
+    #   iconAnchorX = 22, iconAnchorY = 94
+    # )
     
     # random_points <- list(
     #   longitudes = warsaw$lon + rnorm(points_n, sd = 0.1),
     #   latitudes = warsaw$lat + rnorm(points_n, sd = 0.1)
     # )
+    
+    
+    # shiny.semantic::search_selection_choices()
+    
     
     leaflet() %>% addTiles() %>%
       # addMapboxGL(style = "mapbox://styles/mapbox/streets-v9") %>%
@@ -78,8 +83,8 @@ server <- function(input, output, session) {
       #   onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>%
       addCircleMarkers(
         # label = ~ "Start",
-        lng =  df_filtered$LON_lag,
-        lat = df_filtered$LAT_lag,
+        lng =  df$LON_lag,
+        lat = df$LAT_lag,
         fillColor = "green",
         fillOpacity = .5,
         stroke = F
@@ -87,18 +92,18 @@ server <- function(input, output, session) {
       
       addCircleMarkers(
         # label = ~ "End",
-        lng =  df_filtered$LON,
-        lat = df_filtered$LAT,
+        lng =  df$LON,
+        lat = df$LAT,
         fillColor = "red",
         fillOpacity = .5,
         stroke = F
-      ) %>% 
-      
+      ) %>%
+
       addRectangles(
-        lng1 = df_filtered$LON_lag,
-        lat1 = df_filtered$LAT_lag,
-        lng2 = df_filtered$LON,
-        lat2 = df_filtered$LAT
+        lng1 = df$LON_lag,
+        lat1 = df$LAT_lag,
+        lng2 = df$LON,
+        lat2 = df$LAT
       )
       
       # addMarkers(
@@ -115,27 +120,27 @@ server <- function(input, output, session) {
       # )
   })
   
-  observe({
-    click <- input$polluters_map_marker_click
-    if (is.null(click)) return() # Unwanted event during map initialization
-    selected_point$id <- click$id
-    print(paste("Selected point", selected_point$id))
-    
-    circleIcon <- makeIcon(
-      iconUrl = "images/red-loading-circle.gif",
-      iconWidth = 30, iconHeight = 30,
-      iconAnchorX = 7, iconAnchorY = 50
-    )
-    
-    leafletProxy("polluters_map") %>% 
-      removeMarker(layerId = "selected") %>%
-      addMarkers(
-        data = cbind(c(click$lng), c(click$lat)), 
-        layerId = "selected",
-        icon = circleIcon
-      )
-  })
-  
+  # observe({
+  #   click <- input$polluters_map_marker_click
+  #   if (is.null(click)) return() # Unwanted event during map initialization
+  #   selected_point$id <- click$id
+  #   print(paste("Selected point", selected_point$id))
+  #   
+  #   circleIcon <- makeIcon(
+  #     iconUrl = "images/red-loading-circle.gif",
+  #     iconWidth = 30, iconHeight = 30,
+  #     iconAnchorX = 7, iconAnchorY = 50
+  #   )
+  #   
+  #   leafletProxy("polluters_map") %>% 
+  #     removeMarker(layerId = "selected") %>%
+  #     addMarkers(
+  #       data = cbind(c(click$lng), c(click$lat)), 
+  #       layerId = "selected",
+  #       icon = circleIcon
+  #     )
+  # })
+  # 
   output$marine_stats <- renderUI({
     grid(
       grid_template = grid_template(default = list(
@@ -150,9 +155,11 @@ server <- function(input, output, session) {
       area_styles = list(card1 = "padding-right: 5px", card2 = "padding-left: 5px"),
       
       status = div(class = "content",
-                   "Interesting message"
-                   
-                   ),
+                   shiny.semantic::selectInput("vessel", "Vessel:",
+                                               #c("AGATH", "GLOMAR WAVE"),
+                                               base::unique(dfs$clean$SHIPNAME),
+                               multiple = FALSE)),
+
       
       card1 = card(
         style = "border-radius: 0; width: 100%; height: 150px; background: #efefef",
@@ -186,6 +193,8 @@ server <- function(input, output, session) {
   output$sidebar <- renderUI({
     uiOutput("marine_stats")
     })
+  
+ 
   
   gauge <- function(value) {
     col_stops <- data.frame(
@@ -256,9 +265,9 @@ server <- function(input, output, session) {
   # })
   
   output$selection_map <- renderLeaflet({
-    leaflet::leaflet() %>% leaflet::addTiles() %>%
+    leaflet::leaflet() %>% leaflet::addTiles()# %>%
       # addMapboxGL(style = "mapbox://styles/mapbox/streets-v9") %>%
-      leaflet::setView(lng = warsaw$lon, lat = warsaw$lat, zoom = 12)
+      # leaflet::setView(lng = warsaw$lon, lat = warsaw$lat, zoom = 12)
   })
   
 }
