@@ -53,10 +53,41 @@ server <- function(input, output, session) {
     dfs$clean %>% dplyr::filter(SHIPNAME == req(input$vessel))
   })
   
-  output$polluters_map <- renderLeaflet({
-    # input$vessel <- 
-    df <- df_filtered() 
+  # values <- reactiveValues()
+  # observe({ 
+  #   # req(input$Location,input$reLocation)
+  #   # browser()
+  #   # values$df_ship_type <-  df_filtered() %>% filter(ship_type == input$ship_type)
+  #   
+  #   values$df_vessel <- df_filtered()  %>%# values$df_ship_type %>%
+  #     dplyr::filter(SHIPNAME == input$vessel) 
+  # }) 
+  
+  
+  output$main_map <- renderLeaflet({
+    # df <- dfs$clean %>% head(1) #dplyr::filter(SHIPNAME == req(input$vessel))
+     # df <- df_filtered() 
+    # df_filtered <- function(){dfs$clean %>% head(5)}
     
+     df_poly <- 
+       df_filtered() %>% 
+       dplyr::select(LAT_lag, LON_lag, everything(), -c("LAT", "LON")) %>% 
+       dplyr::rename("LAT" = "LAT_lag", "LON" = "LON_lag") %>% 
+       dplyr::mutate(group = "Start") %>% 
+       dplyr::bind_rows(
+         df_filtered() %>% 
+           dplyr::select(LAT, LON, everything(), -c("LAT_lag", "LON_lag")) %>% 
+           dplyr::mutate(group = "End")
+       ) %>% 
+       dplyr::arrange(SHIPNAME)
+       
+       # dplyr::data(group = c("Start", "End"),
+       #                     lat = c(df_filtered()$LAT_lag, df_filtered()$LAT),
+       #                     long = c(df_filtered()$LON_lag, df_filtered()$LON))
+       # 
+     
+    
+     
     # smokeIcon <- makeIcon(
     #   iconUrl = "images/smoke.gif",
     #   iconWidth = 60, iconHeight = 60,
@@ -71,8 +102,8 @@ server <- function(input, output, session) {
     
     # shiny.semantic::search_selection_choices()
     
-    
-    leaflet() %>% addTiles() %>%
+    ships_map <-
+    leaflet::leaflet() %>% leaflet::addTiles() %>%
       # addMapboxGL(style = "mapbox://styles/mapbox/streets-v9") %>%
       # setView(lng = warsaw$lon, lat = warsaw$lat, zoom = 12) %>%
       # addEasyButton(easyButton(
@@ -81,30 +112,53 @@ server <- function(input, output, session) {
       # addEasyButton(easyButton(
       #   icon="fa-crosshairs", title="Locate Me",
       #   onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>%
-      addCircleMarkers(
+      leaflet::addCircleMarkers(
+        data = df_filtered(),
         # label = ~ "Start",
-        lng =  df$LON_lag,
-        lat = df$LAT_lag,
+        lng =  ~LON_lag,
+        lat = ~LAT_lag,
         fillColor = "green",
         fillOpacity = .5,
         stroke = F
       ) %>% 
       
-      addCircleMarkers(
+      leaflet::addCircleMarkers(
+        data = df_filtered(),
         # label = ~ "End",
-        lng =  df$LON,
-        lat = df$LAT,
+        lng =  ~LON,
+        lat = ~LAT,
         fillColor = "red",
         fillOpacity = .5,
         stroke = F
-      ) %>%
+      ) #%>%
+      # addPolylines(data = df_poly, lng = ~LON, lat = ~LAT, group = ~group)
+      
+    for(i in 1:nrow(df_filtered())){
+      ships_map <- addPolylines(ships_map, lat = as.numeric(df_filtered()[i, c("LAT_lag", "LAT")]),
+                           lng = as.numeric(df_filtered()[i, c("LON_lag", "LON")]))
+    }
 
-      addRectangles(
-        lng1 = df$LON_lag,
-        lat1 = df$LAT_lag,
-        lng2 = df$LON,
-        lat2 = df$LAT
-      )
+    ships_map
+      
+
+    
+    
+    # leaflet::addPolylines(
+    #     lng = c(~LON_lag, ~LON),
+    #     lat = c(~LAT_lag, ~LAT)
+    #   ) #%>%
+      # addRectangles(
+      #   lng1 = df$LON_lag,
+      #   lat1 = df$LAT_lag,
+      #   lng2 = df$LON,
+      #   lat2 = df$LAT
+      # )      
+      # addRectangles(
+      #   lng1 = df$LON_lag,
+      #   lat1 = df$LAT_lag,
+      #   lng2 = df$LON,
+      #   lat2 = df$LAT
+      # )
       
       # addMarkers(
       #   data = cbind(df_filtered$LON_lag, df_filtered$LAT_lag),
@@ -150,16 +204,37 @@ server <- function(input, output, session) {
           c("plot", "plot")
         ),
         cols_width = c("50%", "50%"),
-        rows_height = c("80px", "160px", "auto")
+        rows_height = c("160px", "160px", "auto")
       )),
       area_styles = list(card1 = "padding-right: 5px", card2 = "padding-left: 5px"),
       
-      status = div(class = "content",
-                   shiny.semantic::selectInput("vessel", "Vessel:",
-                                               #c("AGATH", "GLOMAR WAVE"),
-                                               base::unique(dfs$clean$SHIPNAME),
-                               multiple = FALSE)),
-
+      status =
+        div(
+          class = "content",
+          
+          div(
+            shiny.semantic::selectInput(
+              "ship_type",
+              "Ship Type:",
+              base::unique(dfs$clean$ship_type),
+              multiple = FALSE
+            )
+          ),
+          
+          div(
+            
+            shiny.semantic::selectInput(
+              "vessel",
+              "Vessel:",
+              #c("AGATH", "GLOMAR WAVE"),
+              base::unique(dfs$clean$SHIPNAME),
+              # selected = "AGATH",
+              multiple = FALSE
+            )
+          )
+          
+        ),
+  
       
       card1 = card(
         style = "border-radius: 0; width: 100%; height: 150px; background: #efefef",
@@ -196,48 +271,48 @@ server <- function(input, output, session) {
   
  
   
-  gauge <- function(value) {
-    col_stops <- data.frame(
-      q = c(0.15, 0.4, .8),
-      c = c('#55BF3B', '#DDDF0D', '#DF5353'),
-      stringsAsFactors = FALSE
-    )
-    
-    highchart() %>%
-      hc_chart(type = "solidgauge") %>%
-      hc_pane(
-        startAngle = -90,
-        endAngle = 90,
-        background = list(
-          outerRadius = '100%',
-          innerRadius = '60%',
-          shape = "arc"
-        )
-      ) %>%
-      hc_tooltip(enabled = FALSE) %>% 
-      hc_yAxis(
-        stops = list_parse2(col_stops),
-        lineWidth = 0,
-        minorTickWidth = 0,
-        tickAmount = 2,
-        min = 0,
-        max = 100,
-        labels = list(y = 26, style = list(fontSize = "12px")),
-        showFirstLabel = FALSE,
-        showLastLabel = FALSE
-      ) %>%
-      hc_add_series(
-        data = value,
-        dataLabels = list(
-          y = -20,
-          borderWidth = 0,
-          useHTML = TRUE,
-          style = list(fontSize = "15px"),
-          formatter = JS(paste0("function () { return '", value, "%'; }"))
-        )
-      ) %>% 
-      hc_size(height = 150)
-  }
+  # gauge <- function(value) {
+  #   col_stops <- data.frame(
+  #     q = c(0.15, 0.4, .8),
+  #     c = c('#55BF3B', '#DDDF0D', '#DF5353'),
+  #     stringsAsFactors = FALSE
+  #   )
+  #   
+  #   highchart() %>%
+  #     hc_chart(type = "solidgauge") %>%
+  #     hc_pane(
+  #       startAngle = -90,
+  #       endAngle = 90,
+  #       background = list(
+  #         outerRadius = '100%',
+  #         innerRadius = '60%',
+  #         shape = "arc"
+  #       )
+  #     ) %>%
+  #     hc_tooltip(enabled = FALSE) %>% 
+  #     hc_yAxis(
+  #       stops = list_parse2(col_stops),
+  #       lineWidth = 0,
+  #       minorTickWidth = 0,
+  #       tickAmount = 2,
+  #       min = 0,
+  #       max = 100,
+  #       labels = list(y = 26, style = list(fontSize = "12px")),
+  #       showFirstLabel = FALSE,
+  #       showLastLabel = FALSE
+  #     ) %>%
+  #     hc_add_series(
+  #       data = value,
+  #       dataLabels = list(
+  #         y = -20,
+  #         borderWidth = 0,
+  #         useHTML = TRUE,
+  #         style = list(fontSize = "15px"),
+  #         formatter = JS(paste0("function () { return '", value, "%'; }"))
+  #       )
+  #     ) %>% 
+  #     hc_size(height = 150)
+  # }
   
   
   # output$pollution <- renderHighchart({
@@ -264,10 +339,10 @@ server <- function(input, output, session) {
   #   )  
   # })
   
-  output$selection_map <- renderLeaflet({
-    leaflet::leaflet() %>% leaflet::addTiles()# %>%
-      # addMapboxGL(style = "mapbox://styles/mapbox/streets-v9") %>%
-      # leaflet::setView(lng = warsaw$lon, lat = warsaw$lat, zoom = 12)
-  })
+  # output$selection_map <- renderLeaflet({
+  #   leaflet::leaflet() %>% leaflet::addTiles()# %>%
+  #     # addMapboxGL(style = "mapbox://styles/mapbox/streets-v9") %>%
+  #     # leaflet::setView(lng = warsaw$lon, lat = warsaw$lat, zoom = 12)
+  # })
   
 }

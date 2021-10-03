@@ -4,7 +4,7 @@ body {
 }
 
 @media screen and (min-width: 845px) {
-  #polluters_map {
+  #main_map {
     height: 100vh !important;
   }
 }

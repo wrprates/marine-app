@@ -40,10 +40,9 @@ semanticPage(
     
               "Wlademir Prates", 
               span(style = "color: #0099f9; font-size: 13px;", 
-                   icon("linkedin"), 
-                   tags$a(href = "https://www.linkedin.com/in/wlademir-ribeiro-prates/", style = "text-decoration: underline")))
+                   HTML("<a target = '_blank' href = 'https://www.linkedin.com/in/wlademir-ribeiro-prates/'>"), icon("linkedin") ,HTML("</a>")))
       )
     ),
-    map = leafletOutput("polluters_map")
+    map = leafletOutput("main_map")
   )
 )

@@ -5,9 +5,9 @@ account: wrprates
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4781174
-bundleId: 5096154
+bundleId: 5100084
 url: https://wrprates.shinyapps.io/marine-app/
-when: 1633151408.81104
-lastSyncTime: 1633151408.81106
+when: 1633290899.46666
+lastSyncTime: 1633290899.46668
 asMultiple: FALSE
 asStatic: FALSE

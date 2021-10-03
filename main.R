@@ -18,3 +18,4 @@ source(paste0(project_root_path, "/environment/renv_init.R"))
 
 # Loading local functions
 source(paste0(project_root_path, "/sources/functions.R"))
+
