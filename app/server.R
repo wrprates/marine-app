@@ -6,7 +6,27 @@ df_clean <-
   dplyr::mutate(vessel_distance = base::round(vessel_distance, 2))
  
 
-  
+df_filtered <- reactive(
+  df_clean %>% dplyr::filter(ship_type == input$ship_type) %>% 
+    dplyr::filter(SHIPNAME %in% input$vessel)
+)
+
+
+
+# observe({
+#   shiny.semantic::updateSelectInput(session, "vessel", choices = df_filtered()$SHIPNAME)
+# })
+
+# values <- reactiveValues()
+# 
+# observe(
+#   # values$ship_type = base::unique(df_clean$ship_type)
+#   values$vessels = base::unique(df_filtered()$SHIPNAME)
+# )
+
+
+
+
 ####
 # SIDEBAR -----------------------------------------------------------------
 ####
@@ -27,32 +47,30 @@ df_clean <-
         div(
           class = "content",
           
+          # div(selectShip("ship_type", "Ship Type:", base::unique(df_clean$ship_type))),
+          
           div(
             shiny.semantic::selectInput(
               inputId = "ship_type",
               label = "Ship Type:",
               base::unique(df_clean$ship_type),
-              # choices = values$ship_type,
-              # choices = base::unique(dfs$clean$ship_type),
               multiple = FALSE
             )
           ),
           
-          # div(
-          #   
-          #   shiny.semantic::selectInput(
-          #     inputId = "vessel",
-          #     label = "Vessel:",
-          #     # c("AGATH", "GLOMAR WAVE"),
-          #     # choices = values$vessel,
-          #     # choices = dfs$clean %>% dplyr::filter(ship_type == input$ship_type) %>% dplyr::distinct(SHIPNAME) %>% dplyr::pull(),
-          #     choices =  base::unique(df_filtered()$SHIPNAME),
-          #     # base::unique(dfs$clean$SHIPNAME),
-          #     # selected = "AGATH",
-          #     multiple = FALSE
-          #   )
-          # ),
+          # div(uiOutput("vessel")),
           
+          div(
+            shiny.semantic::selectInput(
+              inputId = "vessel",
+              label = "Vessel:",
+              choices = c("AGATH", "LOOKMAN", "LINDA", "BURO"),#df_filtered()$SHIPNAME,
+              # choices = vessels_filtered(),
+              selected = c("AGATH", "LOOKMAN", "LINDA", "BURO"),
+              multiple = TRUE
+            )
+          ),
+
           div(
             counterButton("counter1", "Contador #1")
           )
@@ -87,43 +105,65 @@ df_clean <-
     )
   })
   
+
+observe({
+  req(input$ship_type)
+  x <- df_clean %>% dplyr::filter(ship_type == input$ship_type) %>% dplyr::select(SHIPNAME) %>% dplyr::pull()
   
+  # Can use character(0) to remove all choices
+  if (is.null(x))
+    x <- character(0)
+  
+  # Can also set the label and select items
+  
+  shiny.semantic::updateSelectInput(
+    session, "vessel", label = "Vessel:",
+    
+          choices = x,
+          # choices = vessels_filtered(),
+          selected = tail(x, 1)#,
+          # multiple = TRUE
+        )
+  
+  # updateSelectInput(session, "inSelect",
+  #                   label = paste("Select input label", length(x)),
+  #                   choices = x,
+  #                   selected = tail(x, 1)
+  # )
+})
+
+
+
+# output$vessel <- renderUI({
+#   
+#   vessel_selected <- 
+#       df_filtered() 
+#   
+#     
+#   
+#   div(
+#     shiny.semantic::selectInput(
+#       inputId = "vessel",
+#       label = "Vessel:",
+#       choices = vessel_selected,
+#       # choices = vessels_filtered(),
+#       selected = df_clean$SHIPNAME,
+#       multiple = TRUE
+#     )
+#   )
+# })
+#   
+
 ####
 # DASHBOARD BODY ----------------------------------------------------------
 ####
   output$dash_body <- shiny::renderUI({
     
-    values <- reactiveValues()
-    
-    # observe(
-    #   values$ship_type = base::unique(df_clean$ship_type)
-    # )
-    # 
-    # df_clean <- reactive(df_clean)
-    
-    df_filtered <- reactive(
-      df_clean %>% dplyr::filter(ship_type == input$ship_type) 
-      )
-    
-    # values <- reactiveValues()
-    # observe({
-    #   values$ship_type <- base::unique(dfs$clean$ship_type) 
-    # })
-    
-    
-    
-  
-    # df_clean <- reactive({dfs$clean})
-    
-    
-    
-    
-
-    
- 
-    
-
-    
+    vessels_filtered <- eventReactive(input$ship_type, {
+      req(input$ship_type)
+      df_filtered %>% dplyr::select(SHIPNAME) %>% dplyr::pull()
+      
+    })
     
     
     # Creating Leaflet Map
@@ -206,8 +246,7 @@ df_clean <-
   })
   
   
-  
-  
+
   
   # observe({
   #   click <- input$polluters_map_marker_click
@@ -234,6 +273,7 @@ df_clean <-
 
   counterServer("counter1")
   
+  # selectShipServer("ship_type")
   
   
 
