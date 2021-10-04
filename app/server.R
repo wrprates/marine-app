@@ -108,20 +108,25 @@ df_filtered <- reactive(
 
 observe({
   req(input$ship_type)
-  x <- df_clean %>% dplyr::filter(ship_type == input$ship_type) %>% dplyr::select(SHIPNAME) %>% dplyr::pull()
+  ship <- 
+    df_clean %>% 
+    dplyr::filter(ship_type == input$ship_type) %>% 
+    dplyr::arrange(dplyr::desc(vessel_distance)) %>% 
+    dplyr::select(SHIPNAME) %>% 
+    dplyr::pull()
   
   # Can use character(0) to remove all choices
-  if (is.null(x))
-    x <- character(0)
+  if (is.null(ship))
+    ship <- character(0)
   
   # Can also set the label and select items
   
   shiny.semantic::updateSelectInput(
     session, "vessel", label = "Vessel:",
     
-          choices = x,
+          choices = ship,
           # choices = vessels_filtered(),
-          selected = tail(x, 1)#,
+          selected = head(ship, 1)#,
           # multiple = TRUE
         )
   
@@ -229,10 +234,21 @@ observe({
       reactable::renderReactable({
         reactable::reactable(
           df_filtered() %>% 
-            dplyr::select(-c("COURSE", "HEADING", "SHIPTYPE", "DWT", "date", "PORT", "LAT_lag", "LON_lag", "LAT", "LON")),
+            dplyr::select("Ship Name" = "SHIPNAME",
+                          "Country" = "FLAG",
+                          "Ship Type" = "ship_type",
+                          "Port" = "port",
+                          "Dest." = "DESTINATION",
+                          "Dt. Time" = "DATETIME",
+                          "Vessel Distance" = "vessel_distance"
+                          ) %>%
+            dplyr::mutate(Country = paste(Country, base::sprintf("<img src = 'http://flagpedia.net/data/flags/mini/%s.png'>", 
+                                               base::tolower(.$Country)))),
           defaultPageSize = 5,
-          resizable = TRUE
-          # width = 960
+          resizable = TRUE,
+          columns = list(
+            Country = colDef(html = TRUE)
+          )
         ) 
       })
     
