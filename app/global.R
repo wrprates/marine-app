@@ -14,6 +14,7 @@ library(shinyjs)
 library(httr)
 library(glue)
 library(lubridate)
+library(reactable)
 
 ####
 # General Setup --------------------------------------------------------
@@ -25,4 +26,11 @@ random_comments <- consts$random_comments
 
 # options(mapbox.accessToken = consts$mapbox_token)
 
+####
+# Load Modules -------------------------------------------------------
+####
+
+base::source("modules/counter.R")
+
+# base::source("modules/select_vessel.R")
 

@@ -4,8 +4,8 @@ semanticPage(
     tags$link(rel = "stylesheet", type = "text/css", href = "css/style.css"),
   ),
   # uiOutput("welcomeModal"),
-  grid(
-    grid_template = grid_template(
+  shiny.semantic::grid(
+    grid_template = shiny.semantic::grid_template(
       default = list(
         areas = rbind(
           c("title", "map"),
@@ -39,10 +39,10 @@ semanticPage(
                        class = "ui avatar image"), 
     
               "Wlademir Prates", 
-              span(style = "color: #0099f9; font-size: 13px;", 
-                   HTML("<a target = '_blank' href = 'https://www.linkedin.com/in/wlademir-ribeiro-prates/'>"), icon("linkedin") ,HTML("</a>")))
+              htmltools::HTML("<a target = '_blank' href = 'https://www.linkedin.com/in/wlademir-ribeiro-prates/'>"), icon("linkedin") , htmltools::HTML("</a>"))
+              
       )
     ),
-    map = leafletOutput("main_map")
+    map = shiny::uiOutput("dash_body") 
   )
 )

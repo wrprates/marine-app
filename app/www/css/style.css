@@ -5,6 +5,6 @@ body {
 
 @media screen and (min-width: 845px) {
   #main_map {
-    height: 100vh !important;
+    /*height: 100vh !important;*/
   }
 }

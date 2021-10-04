@@ -37,6 +37,7 @@ message("Verificando disponibilidade dos pacotes default para o projeto...")
     "httr",
     "glue",
     "lubridate",
+    "reactable",
     
     # For ShinyApps publishing
     "rstudioapi",
