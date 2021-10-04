@@ -58,8 +58,9 @@ df_filtered <- reactive(
             )
           ),
           
-          # div(uiOutput("vessel")),
-          
+          # TODO
+          # mod_select_vessel_ui(id = "select2"),
+          ####### WORKING
           div(
             shiny.semantic::selectInput(
               inputId = "vessel",
@@ -69,73 +70,77 @@ df_filtered <- reactive(
               selected = c("AGATH", "LOOKMAN", "LINDA", "BURO"),
               multiple = TRUE
             )
-          ),
+          )#,
+          #######
 
-          div(
-            counterButton("counter1", "Contador #1")
-          )
+          # MODULE TEST
+          # div(
+          #   counterButton("counter1", "Contador #1")
+          # )
           
         ),
       
       
       card1 = card(
-        style = "border-radius: 0; width: 100%; height: 150px; background: #efefef",
-        div(class = "content",
-            div(class = "header", style = "margin-bottom: 10px", "Card 1")
-        )
+        # style = "border-radius: 0; width: 100%; height: 150px; background: #efefef",
+        # div(class = "content",
+        #     div(class = "header", style = "margin-bottom: 10px", "Card 1")
+        # )
       ),
       
       card2 = card(
-        style = "border-radius: 0; width: 100%; height: 150px; background: #efefef",
-        div(class = "content",
-            div(class = "header", style = "margin-bottom: 10px", "Card 2")
-        )
+        # style = "border-radius: 0; width: 100%; height: 150px; background: #efefef",
+        # div(class = "content",
+        #     div(class = "header", style = "margin-bottom: 10px", "Card 2")
+        # )
       ),
       
       plot = card(
-        style = "border-radius: 0; width: 100%; background: #efefef",
-        div(class = "content",
-            div(class = "header", style = "margin-bottom: 10px", "Chart Title"),
-            div(class = "meta", "Chart Subtitle"),
-            div(class = "description", style = "margin-top: 10px", 
-                # highchartOutput("pollution", height = "200px")
-            )
-        )
+        # style = "border-radius: 0; width: 100%; background: #efefef",
+        # div(class = "content",
+        #     div(class = "header", style = "margin-bottom: 10px", "Chart Title"),
+        #     div(class = "meta", "Chart Subtitle"),
+        #     div(class = "description", style = "margin-top: 10px", 
+        #         # highchartOutput("pollution", height = "200px")
+        #     )
+        # )
       )
+      
+      
     )
   })
   
-
+# TODO
+# mod_select_vessel_server("select2")
+##### WORKING
 observe({
   req(input$ship_type)
-  ship <- 
-    df_clean %>% 
-    dplyr::filter(ship_type == input$ship_type) %>% 
-    dplyr::arrange(dplyr::desc(vessel_distance)) %>% 
-    dplyr::select(SHIPNAME) %>% 
+  ship <-
+    df_clean %>%
+    dplyr::filter(ship_type == input$ship_type) %>%
+    dplyr::arrange(dplyr::desc(vessel_distance)) %>%
+    dplyr::select(SHIPNAME) %>%
     dplyr::pull()
-  
+
   # Can use character(0) to remove all choices
   if (is.null(ship))
     ship <- character(0)
-  
+
   # Can also set the label and select items
-  
+
   shiny.semantic::updateSelectInput(
     session, "vessel", label = "Vessel:",
-    
+
           choices = ship,
           # choices = vessels_filtered(),
           selected = head(ship, 1)#,
           # multiple = TRUE
         )
-  
-  # updateSelectInput(session, "inSelect",
-  #                   label = paste("Select input label", length(x)),
-  #                   choices = x,
-  #                   selected = tail(x, 1)
-  # )
+
 })
+########
+
+
 
 
 
