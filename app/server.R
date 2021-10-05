@@ -42,25 +42,25 @@ df_filtered <- reactive(
             )
           ),
           
-          # TODO
-          # mod_select_vessel_ui(id = "select2"),
-          ####### WORKING
-          div(
-              selectizeInput(
-              inputId = "vessel",
-              label = "Vessel:",
-              choices = df_clean$SHIPNAME,
-              multiple = TRUE,
-              options = list(maxItems = 20 ),
-              width = "100%"
-            )
-          )#,
-          #######
 
-          # MODULE TEST
-          # div(
-          #   counterButton("counter1", "Contador #1")
-          # )
+          #### WORKING
+          div(
+            
+            # TODO
+            # mod_select_vessel_ui("select_vessels"),
+          
+            uiOutput("vessel_selected")
+            
+            #   selectizeInput(
+            #   inputId = "vessel",
+            #   label = "Vessel:",
+            #   choices = df_clean$SHIPNAME,
+            #   multiple = TRUE,
+            #   options = list(maxItems = 20 ),
+            #   width = "100%"
+            # )
+            
+          )
           
         ),
       
@@ -89,38 +89,54 @@ df_filtered <- reactive(
         #     )
         # )
       )
-      
-      
+
     )
   })
   
 # TODO
-# mod_select_vessel_server("select2")
-##### WORKING
-observe({
-  req(input$ship_type)
-  ship <-
-    df_clean %>%
-    dplyr::filter(ship_type == input$ship_type) %>%
-    dplyr::arrange(dplyr::desc(vessel_distance)) %>%
-    dplyr::select(SHIPNAME) %>%
-    dplyr::pull()
+# mod_select_vessel_server("select_vessels")
 
-  # Can use character(0) to remove all choices
-  if (is.null(ship))
-    ship <- character(0)
+#### WORKING
 
-  # Can also set the label and select items
-    updateSelectizeInput(
-          session, "vessel",
-          label = "Vessel:",
-          choices = ship,
-          selected = head(ship, 1)
-        )
-
-})
-########
-
+output$vessel_selected <- 
+  renderUI({
+    
+    observe({
+      req(input$ship_type)
+      ship <-
+        df_clean %>%
+        dplyr::filter(ship_type == input$ship_type) %>%
+        dplyr::arrange(dplyr::desc(vessel_distance)) %>%
+        dplyr::select(SHIPNAME) %>%
+        dplyr::pull()
+      
+      # Can use character(0) to remove all choices
+      if (is.null(ship))
+        ship <- character(0)
+      
+      # Can also set the label and select items
+      updateSelectizeInput(
+        session, "vessel",
+        label = "Vessel:",
+        choices = ship,
+        selected = head(ship, 1)
+      )
+    })
+    ####
+    
+    
+    # UI Objects
+    selectizeInput(
+      inputId = "vessel",
+      label = "Vessel:",
+      choices = df_clean$SHIPNAME,
+      multiple = TRUE,
+      options = list(maxItems = 20 ),
+      width = "100%"
+    )
+    
+  })
+  
 
 
 ####
@@ -143,10 +159,7 @@ observe({
         ) %>% 
         dplyr::arrange(SHIPNAME)
 
-      
-      # Popup
-
-        
+      # Map
       ships_map <-
         leaflet::leaflet() %>% 
         leaflet::addTiles() %>%
@@ -169,7 +182,6 @@ observe({
         # Red: End
         leaflet::addCircleMarkers(
           data = df_filtered(),
-          # label = ~ "End",
           lng =  ~LON,
           lat = ~LAT,
           fillColor = "red",
@@ -224,15 +236,12 @@ observe({
             reactable::reactableOutput("tab_ships")
           )
         )
-         
-        
       )
-    
   })
   
   
 # Server Modules -----------
-  counterServer("counter1")
+  # counterServer("counter1")
   
   # selectShipServer("ship_type")
   

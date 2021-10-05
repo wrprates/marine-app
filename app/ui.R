@@ -29,7 +29,10 @@ semanticPage(
     area_styles = list(title = "margin: 20px;", map = "margin: 0px;", info = "margin: 20px;", user = "margin: 20px;"),
     
     title = h2(class = "ui header", icon("ship"), div(class = "content", "Marine App")),
-    info = uiOutput("sidebar"),
+    info = 
+      div(
+        uiOutput("sidebar")
+      ),
     user = card(
       style = "border-radius: 0; width: 100%; background: #efefef",
       div(class = "content", 

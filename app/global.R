@@ -32,5 +32,5 @@ random_comments <- consts$random_comments
 
 base::source("modules/counter.R")
 # base::source("modules/select_ship.R")
-# base::source("modules/select_vessel.R")
+base::source("modules/select_vessel.R")
 
