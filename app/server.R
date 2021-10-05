@@ -1,44 +1,22 @@
 server <- function(input, output, session) {
   
-
+# Reading data
 df_clean <- 
   readr::read_rds("https://gitlab.com/wrprates/marine-app/-/raw/main/data/clean/df_ship_clean.RDS") %>% 
-  dplyr::mutate(vessel_distance = base::round(vessel_distance, 2))
+  dplyr::mutate(vessel_distance = base::round(vessel_distance, 0))
  
-
+# Reactive Data 
 df_filtered <- reactive(
-  df_clean %>% dplyr::filter(ship_type == input$ship_type) %>% 
+  df_clean %>% 
+    dplyr::filter(ship_type == input$ship_type) %>% 
     dplyr::filter(SHIPNAME %in% input$vessel)
 )
-
-
-
-# observe({
-#   shiny.semantic::updateSelectInput(session, "vessel", choices = df_filtered()$SHIPNAME)
-# })
-
-# values <- reactiveValues()
-# 
-# observe(
-#   # values$ship_type = base::unique(df_clean$ship_type)
-#   values$vessels = base::unique(df_filtered()$SHIPNAME)
-# )
-
-
-
 
 ####
 # SIDEBAR -----------------------------------------------------------------
 ####
   output$sidebar <- renderUI({
-    
-    # vessels_filtered <- eventReactive(input$ship_type, {
-    #   req(input$ship_type)
-    #   df_filtered %>% dplyr::select(SHIPNAME) %>% dplyr::pull()
-    #   
-    # })
-    
-    
+
     grid(
       grid_template = grid_template(default = list(
         areas = rbind(
@@ -54,8 +32,6 @@ df_filtered <- reactive(
       status =
         div(
           class = "content",
-          
-          # div(selectShip("ship_type", "Ship Type:", base::unique(df_clean$ship_type))),
           
           div(
             shiny.semantic::selectInput(
@@ -74,8 +50,6 @@ df_filtered <- reactive(
               inputId = "vessel",
               label = "Vessel:",
               choices = df_clean$SHIPNAME,
-              # choices = ship,
-              # selected = "",
               multiple = TRUE,
               options = list(maxItems = 20 ),
               width = "100%"
@@ -137,15 +111,11 @@ observe({
     ship <- character(0)
 
   # Can also set the label and select items
-
-  # shiny.semantic::updateSelectInput(
     updateSelectizeInput(
-    session, "vessel", label = "Vessel:",
-
+          session, "vessel",
+          label = "Vessel:",
           choices = ship,
-          # choices = vessels_filtered(),
-          selected = head(ship, 1)#,
-          # multiple = TRUE
+          selected = head(ship, 1)
         )
 
 })
@@ -153,42 +123,14 @@ observe({
 
 
 
-
-
-# output$vessel <- renderUI({
-#   
-#   vessel_selected <- 
-#       df_filtered() 
-#   
-#     
-#   
-#   div(
-#     shiny.semantic::selectInput(
-#       inputId = "vessel",
-#       label = "Vessel:",
-#       choices = vessel_selected,
-#       # choices = vessels_filtered(),
-#       selected = df_clean$SHIPNAME,
-#       multiple = TRUE
-#     )
-#   )
-# })
-#   
-
 ####
 # DASHBOARD BODY ----------------------------------------------------------
 ####
   output$dash_body <- shiny::renderUI({
-    
 
-    
-    
     # Creating Leaflet Map
     output$main_map <- leaflet::renderLeaflet({
-      # df <- dfs$clean %>% head(1) #dplyr::filter(SHIPNAME == req(input$vessel))
-      # df <- df_filtered() 
       # df_filtered <- function(){dfs$clean %>% head(5)}
-      
       df_poly <- 
         df_filtered() %>% 
         dplyr::select(LAT_lag, LON_lag, everything(), -c("LAT", "LON")) %>% 
@@ -200,17 +142,15 @@ observe({
             dplyr::mutate(group = "End")
         ) %>% 
         dplyr::arrange(SHIPNAME)
+
       
-      
-      # smokeIcon <- makeIcon(
-      #   iconUrl = "images/smoke.gif",
-      #   iconWidth = 60, iconHeight = 60,
-      #   iconAnchorX = 22, iconAnchorY = 94
-      # )
-      
+      # Popup
+
+        
       ships_map <-
-        leaflet::leaflet() %>% leaflet::addTiles() %>%
-        # setView(lng = warsaw$lon, lat = warsaw$lat, zoom = 12) %>%
+        leaflet::leaflet() %>% 
+        leaflet::addTiles() %>%
+        # Green: Start
         leaflet::addCircleMarkers(
           data = df_filtered(),
           # label = ~ "Start",
@@ -218,20 +158,31 @@ observe({
           lat = ~LAT_lag,
           fillColor = "green",
           fillOpacity = .5,
-          stroke = F
+          stroke = T,
+          popup = paste0(
+            "<b><i>START</i> - ", df_filtered()$SHIPNAME, "</b>", "<br/>",
+            "<b>Port: ", df_filtered()$port, "</b>", "<br/>",
+            "<b>Distance:</b> ", prettyNum(df_filtered()$vessel_distance, big.mark = ","), " meters" 
+          )
         ) %>% 
         
+        # Red: End
         leaflet::addCircleMarkers(
           data = df_filtered(),
           # label = ~ "End",
           lng =  ~LON,
           lat = ~LAT,
           fillColor = "red",
-          fillOpacity = .5,
-          stroke = F
-        ) #%>%
-      # addPolylines(data = df_poly, lng = ~LON, lat = ~LAT, group = ~group)
+          fillOpacity = .85,
+          stroke = T,
+          popup = paste0(
+            "<b><i>END</i> - ", df_filtered()$SHIPNAME, "</b>", "<br/>",
+            "<b>Destination: ", df_filtered()$DESTINATION, "</b>", "<br/>",
+            "<b>Distance:</b> ", prettyNum(df_filtered()$vessel_distance, big.mark = ","), " meters" 
+          )
+        )
       
+      # Add lines between points
       for(i in 1:nrow(df_filtered())){
         ships_map <- addPolylines(ships_map, lat = as.numeric(df_filtered()[i, c("LAT_lag", "LAT")]),
                                   lng = as.numeric(df_filtered()[i, c("LON_lag", "LON")]))
@@ -252,7 +203,7 @@ observe({
                           "Port" = "port",
                           "Dest." = "DESTINATION",
                           "Dt. Time" = "DATETIME",
-                          "Vessel Distance" = "vessel_distance"
+                          "Vessel Distance (meters)" = "vessel_distance"
                           ) %>%
             dplyr::mutate(Country = paste(Country, base::sprintf("<img src = 'http://flagpedia.net/data/flags/mini/%s.png'>", 
                                                base::tolower(.$Country)))),
@@ -268,7 +219,7 @@ observe({
       div(
         leaflet::leafletOutput("main_map"),
         card(
-          style = "border-radius: 15; width: 100%; padding: 30px; background: #fff;",
+          style = "border-radius: 15; width: 100%; padding: 15px; background: #fff;",
           div(
             reactable::reactableOutput("tab_ships")
           )
@@ -280,41 +231,11 @@ observe({
   })
   
   
-
-  
-  # observe({
-  #   click <- input$polluters_map_marker_click
-  #   if (is.null(click)) return() # Unwanted event during map initialization
-  #   selected_point$id <- click$id
-  #   print(paste("Selected point", selected_point$id))
-  #   
-  #   circleIcon <- makeIcon(
-  #     iconUrl = "images/red-loading-circle.gif",
-  #     iconWidth = 30, iconHeight = 30,
-  #     iconAnchorX = 7, iconAnchorY = 50
-  #   )
-  #   
-  #   leafletProxy("polluters_map") %>% 
-  #     removeMarker(layerId = "selected") %>%
-  #     addMarkers(
-  #       data = cbind(c(click$lng), c(click$lat)), 
-  #       layerId = "selected",
-  #       icon = circleIcon
-  #     )
-  # })
-  # 
-  
-
+# Server Modules -----------
   counterServer("counter1")
   
   # selectShipServer("ship_type")
   
-  
 
-  # output$selection_map <- renderLeaflet({
-  #   leaflet::leaflet() %>% leaflet::addTiles()# %>%
-  #     # addMapboxGL(style = "mapbox://styles/mapbox/streets-v9") %>%
-  #     # leaflet::setView(lng = warsaw$lon, lat = warsaw$lat, zoom = 12)
-  # })
   
 }
