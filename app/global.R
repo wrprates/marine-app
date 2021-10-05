@@ -26,6 +26,11 @@ random_comments <- consts$random_comments
 
 # options(mapbox.accessToken = consts$mapbox_token)
 
+# Reading data
+df_clean <- 
+  readr::read_rds("https://gitlab.com/wrprates/marine-app/-/raw/main/data/clean/df_ship_clean.RDS") %>% 
+  dplyr::mutate(vessel_distance = base::round(vessel_distance, 0))
+
 ####
 # Load Modules -------------------------------------------------------
 ####

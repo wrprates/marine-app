@@ -1,10 +1,6 @@
 server <- function(input, output, session) {
   
-# Reading data
-df_clean <- 
-  readr::read_rds("https://gitlab.com/wrprates/marine-app/-/raw/main/data/clean/df_ship_clean.RDS") %>% 
-  dplyr::mutate(vessel_distance = base::round(vessel_distance, 0))
- 
+
 # Reactive Data 
 df_filtered <- reactive(
   df_clean %>% 
@@ -47,9 +43,9 @@ df_filtered <- reactive(
           div(
             
             # TODO
-            # mod_select_vessel_ui("select_vessels"),
+            mod_select_vessel_ui("select_vessels"),
           
-            uiOutput("vessel_selected")
+            # uiOutput("vessel_selected")
             
             #   selectizeInput(
             #   inputId = "vessel",
@@ -94,49 +90,73 @@ df_filtered <- reactive(
   })
   
 # TODO
-# mod_select_vessel_server("select_vessels")
+mod_select_vessel_server("select_vessels")
 
 #### WORKING
 
-output$vessel_selected <- 
-  renderUI({
-    
-    observe({
-      req(input$ship_type)
-      ship <-
-        df_clean %>%
-        dplyr::filter(ship_type == input$ship_type) %>%
-        dplyr::arrange(dplyr::desc(vessel_distance)) %>%
-        dplyr::select(SHIPNAME) %>%
-        dplyr::pull()
-      
-      # Can use character(0) to remove all choices
-      if (is.null(ship))
-        ship <- character(0)
-      
-      # Can also set the label and select items
-      updateSelectizeInput(
-        session, "vessel",
-        label = "Vessel:",
-        choices = ship,
-        selected = head(ship, 1)
-      )
-    })
-    ####
-    
-    
-    # UI Objects
-    selectizeInput(
-      inputId = "vessel",
-      label = "Vessel:",
-      choices = df_clean$SHIPNAME,
-      multiple = TRUE,
-      options = list(maxItems = 20 ),
-      width = "100%"
-    )
-    
-  })
+
+
+observe({
+  req(input$ship_type)
   
+  ship <- reactive(
+    df_clean %>%
+      dplyr::filter(ship_type == input$ship_type) %>%
+      dplyr::arrange(dplyr::desc(vessel_distance)) %>%
+      dplyr::select(SHIPNAME) %>%
+      dplyr::pull()
+  )
+  
+  # Can use character(0) to remove all choices
+  if (is.null(ship()))
+    ship <- function(){character(0)}
+  
+  # Can also set the label and select items
+  updateSelectizeInput(
+    session, "vessel",
+    label = "Vessel:",
+    choices = ship(),
+    selected = head(ship(), 1)
+  )
+})
+
+# output$vessel_selected <- 
+#   renderUI({
+#     observe({
+#       req(input$ship_type)
+#       ship <-
+#         df_clean %>%
+#         dplyr::filter(ship_type == input$ship_type) %>%
+#         dplyr::arrange(dplyr::desc(vessel_distance)) %>%
+#         dplyr::select(SHIPNAME) %>%
+#         dplyr::pull()
+#       
+#       # Can use character(0) to remove all choices
+#       if (is.null(ship))
+#         ship <- character(0)
+#       
+#       # Can also set the label and select items
+#       updateSelectizeInput(
+#         session, "vessel",
+#         label = "Vessel:",
+#         choices = ship,
+#         selected = head(ship, 1)
+#       )
+#     })
+#     ####
+#     
+#     # UI Objects
+#     selectizeInput(
+#       inputId = "vessel",
+#       label = "Vessel:",
+#       choices = df_clean$SHIPNAME,
+#       multiple = TRUE,
+#       options = list(maxItems = 20 ),
+#       width = "100%"
+#     )
+#     
+#   })
+#   
 
 
 ####
