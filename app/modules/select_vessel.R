@@ -9,7 +9,7 @@ mod_select_vessel_server <-
     moduleServer(id,
                  function(input, output, session) {
                    output$select2_out <- renderUI({
-                     div(shiny.semantic::selectInput(ns("select2"), label = label, choices = ""))
+                     div(shiny.semantic::selectizeInput(ns("select2"), label = label, choices = ""))
                      
                      # selectInput(
                      #   inputId = session$ns('select2'),
@@ -42,27 +42,9 @@ mod_select_vessel_server <-
                        selected = head(ship, 1)#,
                        # multiple = TRUE
                      )
-                     
-                     # updateSelectInput(session, "inSelect",
-                     #                   label = paste("Select input label", length(x)),
-                     #                   choices = x,
-                     #                   selected = tail(x, 1)
-                     # )
+      
                    })
                   
-                   # observeEvent(input$select1, {
-                   #   df2 <- data %>%
-                   #     filter(C1 == input$select1)
-                   #   
-                   #   updateSelectInput(
-                   #     session,
-                   #     inputId = 'select2',
-                   #     label = 'Select Cat 2',
-                   #     choices = unique(df2$C2)
-                   #   )
-                   #   
-                   #   
-                   # })
                   
                    return(reactive({ input$select2}))
                    

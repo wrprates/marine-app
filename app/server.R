@@ -70,11 +70,10 @@ df_filtered <- reactive(
           # mod_select_vessel_ui(id = "select2"),
           ####### WORKING
           div(
-            # shiny.semantic::selectInput(
               selectizeInput(
               inputId = "vessel",
               label = "Vessel:",
-              choices = df_clean$SHIPNAME,# "AGAT",#df_filtered()$SHIPNAME,
+              choices = df_clean$SHIPNAME,
               # choices = ship,
               # selected = "",
               multiple = TRUE,
