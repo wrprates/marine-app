@@ -31,6 +31,14 @@ df_filtered <- reactive(
 # SIDEBAR -----------------------------------------------------------------
 ####
   output$sidebar <- renderUI({
+    
+    # vessels_filtered <- eventReactive(input$ship_type, {
+    #   req(input$ship_type)
+    #   df_filtered %>% dplyr::select(SHIPNAME) %>% dplyr::pull()
+    #   
+    # })
+    
+    
     grid(
       grid_template = grid_template(default = list(
         areas = rbind(
@@ -62,13 +70,16 @@ df_filtered <- reactive(
           # mod_select_vessel_ui(id = "select2"),
           ####### WORKING
           div(
-            shiny.semantic::selectInput(
+            # shiny.semantic::selectInput(
+              selectizeInput(
               inputId = "vessel",
               label = "Vessel:",
-              choices = c("AGATH", "LOOKMAN", "LINDA", "BURO"),#df_filtered()$SHIPNAME,
-              # choices = vessels_filtered(),
-              selected = c("AGATH", "LOOKMAN", "LINDA", "BURO"),
-              multiple = TRUE
+              choices = df_clean$SHIPNAME,# "AGAT",#df_filtered()$SHIPNAME,
+              # choices = ship,
+              # selected = "",
+              multiple = TRUE,
+              options = list(maxItems = 20 ),
+              width = "100%"
             )
           )#,
           #######
@@ -128,7 +139,8 @@ observe({
 
   # Can also set the label and select items
 
-  shiny.semantic::updateSelectInput(
+  # shiny.semantic::updateSelectInput(
+    updateSelectizeInput(
     session, "vessel", label = "Vessel:",
 
           choices = ship,
@@ -169,11 +181,7 @@ observe({
 ####
   output$dash_body <- shiny::renderUI({
     
-    vessels_filtered <- eventReactive(input$ship_type, {
-      req(input$ship_type)
-      df_filtered %>% dplyr::select(SHIPNAME) %>% dplyr::pull()
-      
-    })
+
     
     
     # Creating Leaflet Map
@@ -260,8 +268,14 @@ observe({
     # Building UI
       div(
         leaflet::leafletOutput("main_map"),
-        htmltools::HTML("Below, the data table:"),
-        reactable::reactableOutput("tab_ships")
+        card(
+          style = "border-radius: 15; width: 100%; padding: 30px; background: #fff;",
+          div(
+            reactable::reactableOutput("tab_ships")
+          )
+        )
+         
+        
       )
     
   })

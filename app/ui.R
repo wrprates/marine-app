@@ -13,7 +13,7 @@ semanticPage(
           c("user", "map")
         ),
         cols_width = c("400px", "1fr"),
-        rows_height = c("50px", "auto", "200px")
+        rows_height = c("50px", "auto", "auto")
       ),
       mobile = list(
         areas = rbind(
@@ -22,11 +22,11 @@ semanticPage(
           "info",
           "user"
         ),
-        rows_height = c("70px", "400px", "auto", "200px"),
+        rows_height = c("auto", "auto", "auto", "auto"),
         cols_width = c("100%")
       )
     ),
-    area_styles = list(title = "margin: 20px;", info = "margin: 20px;", user = "margin: 20px;"),
+    area_styles = list(title = "margin: 20px;", map = "margin: 0px;", info = "margin: 20px;", user = "margin: 20px;"),
     
     title = h2(class = "ui header", icon("ship"), div(class = "content", "Marine App")),
     info = uiOutput("sidebar"),
