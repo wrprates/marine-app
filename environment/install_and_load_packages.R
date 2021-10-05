@@ -1,26 +1,26 @@
 ##############################################
-#########         PACOTES              #######
+#########         PACKAGES             #######
 ##############################################
 
-# Este script em R verifica se os pacotes necessários para executar os códigos do projeto
-# estão instalados. Caso contrário, faz a instalação dos mesmos. Se os pacotes já estão 
-# instalados, o script apenas carrega-os. 
+# This script in R checks if the packages needed to run the project's code
+# are installed. Otherwise, install them. If the packages are already
+# installed, the script just loads them.
 
 #######
-####   OPÇÃO PARA A INSTALAÇÃO
+####   SETTINGS
 #######
 
-# Não verificar diferenças entre as versões do binário e source dos pacotes
+# Do not check difference between binary and source
 options(install.packages.check.source = "no")
 
 
 #######
-####   PACOTES
+####   PACKAGES
 #######
 
-message("Verificando disponibilidade dos pacotes default para o projeto...")
+message("Checking availability of default packages for the project...")
 
-# Lista de pacotes necessários (do CRAN e do GitHub)
+# List of packages (CRAN and GitHub)
 .packages <-
   c(
     "shiny",
@@ -56,69 +56,67 @@ message("Verificando disponibilidade dos pacotes default para o projeto...")
   )
 
 #######
-####   VERIFICAR E INSTALAR
+####   CHECK AND INSTALL
 #######
 
-# Verificar quais dos pacotes necessários já estão instalados. Para isso, usa a função
-# installed.packages() que retorna um dataframe com a lista dos pacotes instaldos no
-# R em execução. Como resultado, temos um vetor do mesmo tamanho do vetor de pacotes
-# de interesse com TRUE (pacote já instalado) ou FALSE (pacote não instalado)
+# Check which of the required packages are already installed. To do this, use the function
+# installed.packages() which returns a dataframe with the list of packages installed on the
+# R running. As a result, we have a vector the same size as the packet vector.
+# of interest with TRUE (package already installed) or FALSE (package not installed)
 .inst <- .packages %in% installed.packages(lib.loc = private_library_dir)
 
-# Se o vetor de pacotes não instalados (diferença entre os pacotes de interesse e os
-# pacotes instalados) tiver tamanho maior que 0, instalar apenas os pacotes não instalados
+# If the vector of packages not installed (difference between the packages of interest and the
+# packages installed) has a size greater than 0, install only the packages not installed
 if (length(.packages[!.inst]) > 0) {
-  message("Instalando pacotes que você ainda não tem no seu ambiente....")
+  message("Installing packages you don't already have in your environment ...")
   install.packages(.packages[!.inst], lib = private_library_dir, dependencies = TRUE, type = "binary")
   #renv::install(packages = .packages[!.inst], library = private_library_dir, rebuild = TRUE)
   # pak::pkg_install(pkg = .packages[!.inst], lib = private_library_dir, ask = FALSE)
-  message("Pacotes instalados....")
+  message("Packages Installed....")
 } else {
-  message("Seu ambiente já tem os pacotes necessários....")
+  message("Your environment already has the necessary packages ...")
 }
 
-# Verificar quais dos pacotes de repositórios já estão instalados. 
+# Check which of the repository packages are already installed.
 if (!is.null(.devpackages)) {
-  # split da string do github para pesquisar se o pacote já está instalado
   .spl.pkg <- strsplit(.devpackages, split = "/")
   .dev.pkg <- unlist(lapply(1:length(.devpackages), function(x) .spl.pkg[[x]][2]))
   .inst.dev.pkg <- .dev.pkg %in% installed.packages(lib.loc = private_library_dir)
   
   if (length(.devpackages[!.inst.dev.pkg]) > 0) {
-    message("Instalando pacotes de repositórios que você ainda não tem no seu ambiente ...")
+    message("Installing packages from repositories you don't already have in your environment ...")
     remotes::install_github(repo = .devpackages[!.inst.dev.pkg], lib = private_library_dir, dependencies = TRUE)
-    message("Pacotes de repositórios instalados ...")
+    message("Packages Installed ...")
   } else {
-    message("Seu ambiente já tem os pacotes de repositórios instalados ...")
+    message("Your environment already has the repository packages installed ...")
   }
 } 
 
 #######
-####   CARREGAR PACOTES NO AMBIENTE 
+####   LOAD PACKAGES
 #######
 
-
-# Após confirmar que todos os pacotes estão instaldos, garantimos que eles estão disponíveis
-# para uso fazendo a carga dos mesmos no R 
+# After confirming that all packages are installed, we guarantee they are available.
+# for use by loading them into R
 .total_packages <- c(.packages, if(!is.null(.devpackages)).dev.pkg)
 
 for (package in 1:length(.total_packages)) {
   suppressWarnings(suppressMessages(require(.total_packages[package], character.only = TRUE, lib.loc = private_library_dir)))
 }
 
-# message("Pacotes carregados para o projeto....")
+message("Packages loaded for the project....")
 print(.total_packages)
 
-########################################
-######    OPÇÕES DE PACOTES       ######
-########################################
+######################################
+######    PACKAGES OPTIONS      ######
+######################################
 
 # Adicionar a opção de paser de POSIX mais rápida
 options(lubridate.fastime = TRUE)
 
-#############################################
-##   CRIAR OBJETO COM VERSÕES INSTALADAS   ##
-#############################################
+##############################################
+##   CREATE OBJECT WITH INSTALLED VERSIONS  ##
+##############################################
 
 all_pckgs_versions <-
   dplyr::tibble(pacote = base::loadedNamespaces()) %>%

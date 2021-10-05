@@ -3,7 +3,6 @@ semanticPage(
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "css/style.css"),
   ),
-  # uiOutput("welcomeModal"),
   shiny.semantic::grid(
     grid_template = shiny.semantic::grid_template(
       default = list(

@@ -1,30 +1,37 @@
 server <- function(input, output, session) {
   
-
-# Reactive Data 
+####
+# Reactive Data -----------------------------------------------------------------
+####
 df_filtered <- reactive(
   df_clean %>% 
     dplyr::filter(ship_type == input$ship_type) %>% 
     dplyr::filter(SHIPNAME %in% input$vessel)
 )
 
+# Data for chart. 
+df_chart_dist <- eventReactive(input$vessel, {
+  df_filtered() %>%
+    dplyr::arrange(dplyr::desc(vessel_distance))
+})
+
+
+
 ####
 # SIDEBAR -----------------------------------------------------------------
 ####
   output$sidebar <- renderUI({
-
+    
     grid(
       grid_template = grid_template(default = list(
         areas = rbind(
           c("status", "status"),
-          c("card1", "card2"),
           c("plot", "plot")
         ),
         cols_width = c("50%", "50%"),
-        rows_height = c("280px", "160px", "auto")
+        rows_height = c("auto", "auto")
       )),
-      area_styles = list(card1 = "padding-right: 5px", card2 = "padding-left: 5px"),
-      
+   
       status =
         div(
           class = "content",
@@ -37,127 +44,27 @@ df_filtered <- reactive(
               multiple = FALSE
             )
           ),
-          
 
-          #### WORKING
-          div(
-            
-            # TODO
-            mod_select_vessel_ui("select_vessels"),
-          
-            # uiOutput("vessel_selected")
-            
-            #   selectizeInput(
-            #   inputId = "vessel",
-            #   label = "Vessel:",
-            #   choices = df_clean$SHIPNAME,
-            #   multiple = TRUE,
-            #   options = list(maxItems = 20 ),
-            #   width = "100%"
-            # )
-            
-          )
+          ## CALL UI Modules
+          div(mod_select_vessel_ui("select_vessels"))
           
         ),
       
-      
-      card1 = card(
-        # style = "border-radius: 0; width: 100%; height: 150px; background: #efefef",
-        # div(class = "content",
-        #     div(class = "header", style = "margin-bottom: 10px", "Card 1")
-        # )
-      ),
-      
-      card2 = card(
-        # style = "border-radius: 0; width: 100%; height: 150px; background: #efefef",
-        # div(class = "content",
-        #     div(class = "header", style = "margin-bottom: 10px", "Card 2")
-        # )
-      ),
-      
       plot = card(
-        # style = "border-radius: 0; width: 100%; background: #efefef",
-        # div(class = "content",
-        #     div(class = "header", style = "margin-bottom: 10px", "Chart Title"),
-        #     div(class = "meta", "Chart Subtitle"),
-        #     div(class = "description", style = "margin-top: 10px", 
-        #         # highchartOutput("pollution", height = "200px")
-        #     )
-        # )
+      
+        style = "border-radius: 0; width: 100%; background: #efefef",
+        div(class = "content",
+            div(class = "header", style = "margin-bottom: 10px", "Longest Distance for Ship Type"),
+            div(class = "meta", "Between two consecutive observations, in meters."),
+            div(class = "description", style = "margin-top: 10px",
+                highcharter::highchartOutput("chart_column_distance", height = 270)
+            )
+        )
       )
 
     )
   })
   
-# TODO
-mod_select_vessel_server("select_vessels")
-
-#### WORKING
-
-
-
-observe({
-  req(input$ship_type)
-  
-  ship <- reactive(
-    df_clean %>%
-      dplyr::filter(ship_type == input$ship_type) %>%
-      dplyr::arrange(dplyr::desc(vessel_distance)) %>%
-      dplyr::select(SHIPNAME) %>%
-      dplyr::pull()
-  )
-  
-  # Can use character(0) to remove all choices
-  if (is.null(ship()))
-    ship <- function(){character(0)}
-  
-  # Can also set the label and select items
-  updateSelectizeInput(
-    session, "vessel",
-    label = "Vessel:",
-    choices = ship(),
-    selected = head(ship(), 1)
-  )
-})
-
-# output$vessel_selected <- 
-#   renderUI({
-#     observe({
-#       req(input$ship_type)
-#       ship <-
-#         df_clean %>%
-#         dplyr::filter(ship_type == input$ship_type) %>%
-#         dplyr::arrange(dplyr::desc(vessel_distance)) %>%
-#         dplyr::select(SHIPNAME) %>%
-#         dplyr::pull()
-#       
-#       # Can use character(0) to remove all choices
-#       if (is.null(ship))
-#         ship <- character(0)
-#       
-#       # Can also set the label and select items
-#       updateSelectizeInput(
-#         session, "vessel",
-#         label = "Vessel:",
-#         choices = ship,
-#         selected = head(ship, 1)
-#       )
-#     })
-#     ####
-#     
-#     # UI Objects
-#     selectizeInput(
-#       inputId = "vessel",
-#       label = "Vessel:",
-#       choices = df_clean$SHIPNAME,
-#       multiple = TRUE,
-#       options = list(maxItems = 20 ),
-#       width = "100%"
-#     )
-#     
-#   })
-#   
-
 
 ####
 # DASHBOARD BODY ----------------------------------------------------------
@@ -259,12 +166,50 @@ observe({
       )
   })
   
+####
+# Other Outputs -----------------------------------------------------------------
+####
+  output$chart_column_distance <- highcharter::renderHighchart({
+    
+    df_chart_dist() %>% 
+      highcharter::hchart(name = "Distance",
+                          hcaes(x = "SHIPNAME", y = "vessel_distance"),
+                          type = "column") %>%
+      highcharter::hc_colors("#1f2937") %>% 
+      highcharter::hc_yAxis(title = list(text = ""))
+    
+  })
   
-# Server Modules -----------
-  # counterServer("counter1")
+####
+# Server Modules and Updates -----------------------------------------------------------------
+####
+  # Load Module
+  mod_select_vessel_server("select_vessels")
   
-  # selectShipServer("ship_type")
+  # Update Input to chose Vessel
+  observe({
+    req(input$ship_type)
+    
+    ship <- reactive(
+      df_clean %>%
+        dplyr::filter(ship_type == input$ship_type) %>%
+        dplyr::arrange(dplyr::desc(vessel_distance)) %>%
+        dplyr::select(SHIPNAME) %>%
+        dplyr::pull()
+    )
+    
+    # Can use character(0) to remove all choices
+    if (is.null(ship()))
+      ship <- function(){character(0)}
+    
+    # Can also set the label and select items
+    updateSelectizeInput(
+      session, "vessel",
+      label = "Vessel:",
+      choices = ship(),
+      selected = head(ship(), 1)
+    )
+  })
   
-
   
 }
