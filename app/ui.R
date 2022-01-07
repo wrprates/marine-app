@@ -41,8 +41,13 @@ semanticPage(
                        class = "ui avatar image"), 
     
               "Wlademir Prates", 
-              htmltools::HTML("<a target = '_blank' href = 'https://www.linkedin.com/in/wlademir-ribeiro-prates/'>"), icon("linkedin") , htmltools::HTML("</a>"))
-              
+              htmltools::HTML("<a target = '_blank' href = 'https://www.linkedin.com/in/wlademir-ribeiro-prates/'>"),
+              icon("linkedin") , 
+              htmltools::HTML("</a>"),
+              htmltools::HTML("<a target = '_blank' href = 'https://gitlab.com/wrprates/marine-app'>"),
+              icon("gitlab") , 
+              htmltools::HTML("</a>")
+          )
       )
     ),
     map = shiny::uiOutput("dash_body") 
